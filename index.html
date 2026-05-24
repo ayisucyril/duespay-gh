@@ -746,7 +746,7 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
 // ═══════════════════════════════════════
 // CONFIG — Replace with your keys
 // ═══════════════════════════════════════
-const PAYSTACK_KEY = 'pk_test_15128a3fa59461d62456af1a299b48f98c9083c6';
+const PAYSTACK_KEY = 'pk_live_d7a96e3c0d5caa87173f3c5cd6afd69c78080cc2';
 const PLATFORM_FEE_PCT = 0.03; // 3% your cut
 const SUPER_ADMIN_EMAIL = 'admin@duespaygh.com';
 const SUPER_ADMIN_PASS  = 'SuperAdmin@2024';
@@ -975,9 +975,11 @@ function initPayment() {
       student_name: name, student_id: sid, level,
       school: currentSchool.name, dues: selectedDues.name, phone
     },
-    // Subaccount split — uncomment when school has subaccount
-    // subaccount: currentSchool.subaccount,
-    // bearer: 'subaccount',
+    // Auto-split: school gets their share, you get your fee
+    ...(currentSchool.subaccount ? {
+      subaccount: currentSchool.subaccount,
+      bearer: 'subaccount',
+    } : {}),
 
     callback: function(response) {
       onPaymentDone(response, {name, sid, email, level, phone});
