@@ -279,6 +279,33 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
   nav{padding:0 1rem}
   .hero{padding:4rem 1rem 2.5rem}
 }
+
+/* ── VERIFY PAGE ── */
+.verify-wrap{max-width:480px;margin:0 auto;padding:2rem 1.5rem}
+.verify-wrap h2{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:.35rem}
+.verify-wrap p{color:var(--muted);font-size:.88rem;margin-bottom:2rem}
+.verify-result{background:var(--card);border:1px solid var(--border);border-radius:16px;
+               padding:1.5rem;margin-top:1.5rem;display:none}
+.verify-result.paid{border-color:var(--accent)}
+.verify-result.notpaid{border-color:var(--danger)}
+.verify-status{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}
+.verify-icon{font-size:2rem}
+.verify-status h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700}
+.verify-status p{font-size:.8rem;color:var(--muted)}
+
+/* ── BRANDING ── */
+.brand-preview{border-radius:14px;overflow:hidden;margin-bottom:1.25rem;border:1px solid var(--border)}
+.brand-preview-nav{height:52px;display:flex;align-items:center;padding:0 1.25rem;
+                   font-family:'Syne',sans-serif;font-size:1rem;font-weight:800}
+.brand-preview-body{padding:1.25rem;font-size:.82rem;color:var(--muted)}
+.color-row{display:flex;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap}
+.color-swatch{display:flex;flex-direction:column;align-items:center;gap:.35rem}
+.color-swatch input[type=color]{width:44px;height:44px;border:none;border-radius:10px;
+                                 cursor:pointer;background:none;padding:0}
+.color-swatch label{font-size:.72rem;color:var(--muted)}
+.sms-info{background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);
+          border-radius:10px;padding:.85rem;font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:1rem}
+.sms-info strong{color:var(--accent)}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -292,6 +319,7 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
     <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
     <div class="nav-links">
       <button class="nav-btn" onclick="showPage('schools')">Pay Dues</button>
+      <button class="nav-btn" onclick="showPage('verify')">Verify Payment</button>
       <button class="nav-btn" onclick="showPage('school-login')">School Login</button>
       <button class="nav-btn primary" onclick="showPage('register')">Register School</button>
     </div>
@@ -391,7 +419,7 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
   </section>
 
   <div style="text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.82rem">
-    © 2026 CM-LORDS GROUP DuesPay GH · Built for Ghana's students · Powered by Paystack
+    © 2024 DuesPay GH · Built for Ghana's students · Powered by Paystack
   </div>
 </div>
 
@@ -503,12 +531,143 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
   </div>
 </div>
 
+<!-- ═══════════ VERIFY PAYMENT PAGE ═══════════ -->
+<div class="page" id="page-verify">
+  <nav id="verify-nav">
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+  </nav>
+  <div class="verify-wrap">
+    <button class="back-btn" onclick="showPage('schools')">← Back</button>
+    <h2>Verify Payment</h2>
+    <p>Students can check if their dues payment has been recorded.</p>
+    <div class="form-group">
+      <label class="form-label">Select School</label>
+      <select class="form-input" id="verify-school">
+        <option value="">Choose school…</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Student ID</label>
+      <input class="form-input" id="verify-sid" placeholder="e.g. 20210001"/>
+    </div>
+    <button class="btn-pay-now" onclick="verifyPayment()" style="background:var(--accent2)">
+      🔍 Check Payment Status
+    </button>
+    <div class="verify-result" id="verify-result">
+      <div class="verify-status">
+        <div class="verify-icon" id="v-icon">✅</div>
+        <div>
+          <h3 id="v-title">Payment Confirmed</h3>
+          <p id="v-sub">Your dues have been recorded</p>
+        </div>
+      </div>
+      <div class="receipt-details">
+        <div class="receipt-row"><span class="label">Student</span><span class="value" id="v-name">—</span></div>
+        <div class="receipt-row"><span class="label">Student ID</span><span class="value" id="v-id">—</span></div>
+        <div class="receipt-row"><span class="label">Dues Paid</span><span class="value" id="v-dues">—</span></div>
+        <div class="receipt-row"><span class="label">Amount</span><span class="value green" id="v-amount">—</span></div>
+        <div class="receipt-row"><span class="label">Date</span><span class="value" id="v-date">—</span></div>
+        <div class="receipt-row"><span class="label">Reference</span><span class="value" id="v-ref" style="font-size:.75rem">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ BRANDING PAGE ═══════════ -->
+<div class="page" id="page-branding">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+    <div class="nav-links">
+      <span style="font-size:.82rem;color:var(--muted)" id="brand-school-name"></span>
+      <button class="nav-btn" onclick="showPage('dashboard')">← Dashboard</button>
+    </div>
+  </nav>
+  <div style="max-width:640px;margin:0 auto;padding:2rem 1.5rem">
+    <button class="back-btn" onclick="showPage('dashboard')">← Back to Dashboard</button>
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;margin-bottom:.35rem">School Branding</h2>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:1.75rem">Customize how your school appears to students on the payment platform.</p>
+
+    <div class="form-group">
+      <label class="form-label">Display Name (shown to students)</label>
+      <input class="form-input" id="brand-name" placeholder="e.g. KNUST SRC"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">School Tagline</label>
+      <input class="form-input" id="brand-tagline" placeholder="e.g. Kwame Nkrumah University of Science & Technology"/>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Brand Colors</label>
+      <div class="color-row">
+        <div class="color-swatch">
+          <input type="color" id="brand-primary" value="#00e5a0" oninput="updateBrandPreview()"/>
+          <label>Primary</label>
+        </div>
+        <div class="color-swatch">
+          <input type="color" id="brand-secondary" value="#7c5cfc" oninput="updateBrandPreview()"/>
+          <label>Secondary</label>
+        </div>
+        <div class="color-swatch">
+          <input type="color" id="brand-bg" value="#050a06" oninput="updateBrandPreview()"/>
+          <label>Background</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Preview</label>
+      <div class="brand-preview" id="brand-preview">
+        <div class="brand-preview-nav" id="bp-nav" style="background:#050a06;color:#00e5a0">
+          KNUST SRC
+        </div>
+        <div class="brand-preview-body" id="bp-body" style="background:#0d110e">
+          Students will see your school name and colors when paying dues.
+          <div style="margin-top:.75rem;display:flex;gap:.5rem">
+            <div id="bp-btn" style="background:#00e5a0;color:#050a06;padding:.4rem .9rem;border-radius:8px;font-size:.78rem;font-weight:700;display:inline-block">Pay Now</div>
+            <div id="bp-badge" style="background:rgba(0,229,160,.12);border:1px solid rgba(0,229,160,.3);color:#00e5a0;padding:.4rem .9rem;border-radius:8px;font-size:.78rem;display:inline-block">GHC Store</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">School Logo Initial (2 letters)</label>
+      <input class="form-input" id="brand-logo" placeholder="e.g. KN" maxlength="2" style="text-transform:uppercase"/>
+    </div>
+
+    <!-- SMS Settings -->
+    <h3 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin:1.5rem 0 .75rem">SMS Receipt Settings</h3>
+    <div class="sms-info">
+      <strong>📱 Auto SMS Receipts</strong> — When enabled, students receive an SMS confirmation immediately after paying. Uses <strong>Hubtel SMS API</strong> (Ghana's best SMS gateway). Get your API key at <strong>hubtel.com</strong>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hubtel Client ID</label>
+      <input class="form-input" id="sms-client-id" placeholder="Your Hubtel Client ID"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hubtel Client Secret</label>
+      <input class="form-input" id="sms-client-secret" placeholder="Your Hubtel Client Secret"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">SMS Sender Name (max 11 chars)</label>
+      <input class="form-input" id="sms-sender" placeholder="e.g. KNUST-SRC" maxlength="11"/>
+    </div>
+    <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem">
+      <input type="checkbox" id="sms-enabled" style="width:18px;height:18px;accent-color:var(--accent)"/>
+      <label for="sms-enabled" style="font-size:.88rem;cursor:pointer">Enable SMS receipts for students</label>
+    </div>
+
+    <button class="btn-pay-now" onclick="saveBranding()">💾 Save Branding & Settings</button>
+  </div>
+</div>
+
 <!-- ═══════════ SCHOOL DASHBOARD ═══════════ -->
 <div class="page" id="page-dashboard">
   <nav>
     <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
     <div class="nav-links">
       <span style="font-size:.82rem;color:var(--muted)" id="dash-school-name">School Dashboard</span>
+      <button class="nav-btn" onclick="showPage('branding')">🎨 Branding & SMS</button>
       <button class="nav-btn" onclick="showAddDuesModal()">+ Add Dues</button>
       <button class="nav-btn" onclick="showPage('home')">Logout</button>
     </div>
@@ -519,7 +678,11 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
         <div class="dash-title" id="dash-title">School Dashboard</div>
         <div class="dash-subtitle">Real-time payment overview</div>
       </div>
-      <button class="nav-btn primary" onclick="exportPayments()">⬇ Export Excel</button>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <input class="form-input" id="search-payments" placeholder="🔍 Search student name or ID…"
+               style="width:220px;padding:.45rem .9rem;font-size:.82rem" oninput="renderDashboard()"/>
+        <button class="nav-btn primary" onclick="exportPayments()">⬇ Export</button>
+      </div>
     </div>
 
     <div class="metrics">
@@ -856,9 +1019,11 @@ function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   window.scrollTo(0,0);
-  if (name === 'schools') renderSchools();
-  if (name === 'dashboard') renderDashboard();
+  if (name === 'schools')    renderSchools();
+  if (name === 'dashboard')  renderDashboard();
   if (name === 'superadmin') renderSuperAdmin();
+  if (name === 'verify')     showPage_verify_init();
+  if (name === 'branding')   showBrandingPage();
 }
 
 // ═══════════════════════════════════════
@@ -922,6 +1087,7 @@ async function openSchool(id) {
 
   selectedDues = null;
   updatePaySummary();
+  applyBranding(currentSchool);
   showPage('payment');
 }
 
@@ -1013,6 +1179,9 @@ async function onPaymentDone(response, student) {
     await db.collection('dp_payments').add(payment);
   } catch(e) { console.error('Payment save error:', e); }
 
+  // Send SMS receipt to student
+  sendSmsReceipt(currentSchool, student, {ref: response.reference}, selectedDues);
+
   // Show receipt
   document.getElementById('r-name').textContent = student.name;
   document.getElementById('r-id').textContent = student.sid;
@@ -1102,11 +1271,19 @@ function renderDashboard() {
   document.getElementById('m-week').textContent   = `GHC ${week.toLocaleString()}`;
 
   // Recent payments
+  // Search filter
+  const searchVal = (document.getElementById('search-payments')?.value || '').toLowerCase();
+  const filtered = myPayments.filter(p =>
+    !searchVal ||
+    (p.studentName||'').toLowerCase().includes(searchVal) ||
+    (p.studentId||'').toLowerCase().includes(searchVal)
+  );
+
   const recentEl = document.getElementById('recent-payments');
-  if (!myPayments.length) {
-    recentEl.innerHTML = `<div style="color:var(--muted);font-size:.83rem;text-align:center;padding:1.5rem">No payments yet. Share your payment link with students!</div>`;
+  if (!filtered.length) {
+    recentEl.innerHTML = `<div style="color:var(--muted);font-size:.83rem;text-align:center;padding:1.5rem">${searchVal ? 'No results for "'+searchVal+'"' : 'No payments yet. Share your payment link with students!'}</div>`;
   } else {
-    recentEl.innerHTML = [...myPayments].reverse().slice(0,8).map(p => `
+    recentEl.innerHTML = [...filtered].reverse().slice(0,20).map(p => `
       <div class="payment-row">
         <div>
           <div class="name">${p.studentName}</div>
@@ -1330,6 +1507,174 @@ document.addEventListener('keydown', e => {
     showPage('superadmin');
   }
 });
+
+// ═══════════════════════════════════════
+// VERIFY PAYMENT
+// ═══════════════════════════════════════
+function showPage_verify_init() {
+  const sel = document.getElementById('verify-school');
+  sel.innerHTML = '<option value="">Choose school…</option>' +
+    schools.filter(s => s.active).map(s =>
+      `<option value="${s.id}">${s.name} — ${s.src}</option>`
+    ).join('');
+}
+
+async function verifyPayment() {
+  const schoolId = document.getElementById('verify-school').value;
+  const sid      = document.getElementById('verify-sid').value.trim();
+  const resultEl = document.getElementById('verify-result');
+
+  if (!schoolId) { showToast('Please select a school.', true); return; }
+  if (!sid)      { showToast('Please enter your Student ID.', true); return; }
+
+  resultEl.style.display = 'none';
+
+  try {
+    // Search Firestore for payment
+    const snap = await db.collection('dp_payments')
+      .where('schoolId','==', schoolId)
+      .where('studentId','==', sid)
+      .orderBy('date','desc')
+      .limit(1)
+      .get();
+
+    if (!snap.empty) {
+      const p = snap.docs[0].data();
+      const date = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+
+      document.getElementById('v-icon').textContent  = '✅';
+      document.getElementById('v-title').textContent = 'Payment Confirmed!';
+      document.getElementById('v-sub').textContent   = 'Your dues are recorded';
+      document.getElementById('v-name').textContent  = p.studentName;
+      document.getElementById('v-id').textContent    = p.studentId;
+      document.getElementById('v-dues').textContent  = p.duesName;
+      document.getElementById('v-amount').textContent = `GHC ${parseFloat(p.amount).toFixed(2)}`;
+      document.getElementById('v-date').textContent  = date.toLocaleDateString('en-GH',{dateStyle:'full'});
+      document.getElementById('v-ref').textContent   = p.ref;
+
+      resultEl.className = 'verify-result paid';
+      resultEl.style.display = 'block';
+    } else {
+      document.getElementById('v-icon').textContent  = '❌';
+      document.getElementById('v-title').textContent = 'No Payment Found';
+      document.getElementById('v-sub').textContent   = 'No dues payment recorded for this Student ID';
+      document.getElementById('v-name').textContent  = '—';
+      document.getElementById('v-id').textContent    = sid;
+      document.getElementById('v-dues').textContent  = '—';
+      document.getElementById('v-amount').textContent = '—';
+      document.getElementById('v-date').textContent  = '—';
+      document.getElementById('v-ref').textContent   = '—';
+
+      resultEl.className = 'verify-result notpaid';
+      resultEl.style.display = 'block';
+    }
+  } catch(e) {
+    showToast('Search error: ' + e.message, true);
+  }
+}
+
+// ═══════════════════════════════════════
+// BRANDING & SMS
+// ═══════════════════════════════════════
+function showBrandingPage() {
+  if (!currentSchool) return;
+  document.getElementById('brand-school-name').textContent = currentSchool.src;
+  const b = currentSchool.branding || {};
+  document.getElementById('brand-name').value    = b.name    || currentSchool.src;
+  document.getElementById('brand-tagline').value = b.tagline || currentSchool.name;
+  document.getElementById('brand-logo').value    = b.logo    || currentSchool.logo;
+  document.getElementById('brand-primary').value   = b.primary   || '#00e5a0';
+  document.getElementById('brand-secondary').value = b.secondary || '#7c5cfc';
+  document.getElementById('brand-bg').value        = b.bg        || '#050a06';
+
+  const sms = currentSchool.sms || {};
+  document.getElementById('sms-client-id').value     = sms.clientId || '';
+  document.getElementById('sms-client-secret').value = sms.secret   || '';
+  document.getElementById('sms-sender').value        = sms.sender   || '';
+  document.getElementById('sms-enabled').checked     = sms.enabled  || false;
+
+  updateBrandPreview();
+}
+
+function updateBrandPreview() {
+  const primary   = document.getElementById('brand-primary').value;
+  const secondary = document.getElementById('brand-secondary').value;
+  const bg        = document.getElementById('brand-bg').value;
+  const name      = document.getElementById('brand-name').value || 'Your School SRC';
+
+  document.getElementById('bp-nav').style.background = bg;
+  document.getElementById('bp-nav').style.color      = primary;
+  document.getElementById('bp-nav').textContent      = name;
+  document.getElementById('bp-body').style.background = bg + 'cc';
+  document.getElementById('bp-btn').style.background  = primary;
+  document.getElementById('bp-btn').style.color       = '#050a06';
+  document.getElementById('bp-badge').style.color     = primary;
+  document.getElementById('bp-badge').style.borderColor = primary;
+}
+
+async function saveBranding() {
+  const branding = {
+    name:      document.getElementById('brand-name').value.trim(),
+    tagline:   document.getElementById('brand-tagline').value.trim(),
+    logo:      document.getElementById('brand-logo').value.trim().toUpperCase() || currentSchool.logo,
+    primary:   document.getElementById('brand-primary').value,
+    secondary: document.getElementById('brand-secondary').value,
+    bg:        document.getElementById('brand-bg').value,
+  };
+  const sms = {
+    clientId: document.getElementById('sms-client-id').value.trim(),
+    secret:   document.getElementById('sms-client-secret').value.trim(),
+    sender:   document.getElementById('sms-sender').value.trim(),
+    enabled:  document.getElementById('sms-enabled').checked,
+  };
+
+  try {
+    await db.collection('dp_schools').doc(currentSchool.id).update({ branding, sms });
+    currentSchool.branding = branding;
+    currentSchool.sms = sms;
+    showToast('Branding & SMS settings saved! ✓');
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+}
+
+// ═══════════════════════════════════════
+// SMS RECEIPT — send after payment
+// ═══════════════════════════════════════
+async function sendSmsReceipt(school, student, payment, selectedDues) {
+  const sms = school.sms;
+  if (!sms || !sms.enabled || !sms.clientId || !sms.secret || !student.phone) return;
+
+  const phone = student.phone.replace(/^0/, '233'); // Ghana format
+  const msg = `DuesPay GH: Hi ${student.name}, your ${selectedDues.name} payment of GHC ${selectedDues.amount.toFixed(2)} for ${school.name} has been confirmed. Ref: ${payment.ref}. Thank you!`;
+
+  try {
+    // Hubtel SMS API
+    const credentials = btoa(`${sms.clientId}:${sms.secret}`);
+    await fetch(`https://smsc.hubtel.com/v1/messages/send?clientsecret=${sms.secret}&clientid=${sms.clientId}&from=${sms.sender}&to=${phone}&content=${encodeURIComponent(msg)}`, {
+      method: 'GET',
+      mode: 'no-cors'
+    });
+    console.log('SMS sent to', phone);
+  } catch(e) {
+    console.log('SMS error (non-critical):', e.message);
+  }
+}
+
+// ═══════════════════════════════════════
+// APPLY SCHOOL BRANDING on payment page
+// ═══════════════════════════════════════
+function applyBranding(school) {
+  const b = school.branding;
+  if (!b) return;
+  // Update school badge colors dynamically
+  const badge = document.getElementById('pay-school-badge');
+  if (badge && b.primary) {
+    badge.style.color       = b.primary;
+    badge.style.borderColor = b.primary + '44';
+    badge.style.background  = b.primary + '12';
+  }
+}
 </script>
 </body>
 </html>
