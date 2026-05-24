@@ -487,11 +487,12 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
         <span id="selected-dues-name" style="font-weight:500">None selected</span>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.35rem">
-        <span style="color:var(--muted)">Platform fee (3%)</span>
-        <span id="platform-fee">GHC 0.00</span>
+        <span style="color:var(--muted)">Service fee (included)</span>
+        <span id="platform-fee" style="color:var(--muted)">GHC 0.00</span>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;padding-top:.5rem;border-top:1px solid var(--border)">
-        <span>Total</span>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;
+                  padding-top:.5rem;border-top:1px solid var(--border)">
+        <span>Total to pay</span>
         <span id="pay-total" style="color:var(--gold)">GHC 0.00</span>
       </div>
     </div>
@@ -833,15 +834,77 @@ nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-co
       <input class="form-input" id="reg-email" type="email" placeholder="src@school.edu.gh"/>
     </div>
     <div class="form-group">
-      <label class="form-label">Paystack Subaccount Code * <span style="color:var(--muted);text-transform:none;font-size:.72rem">(from your Paystack dashboard)</span></label>
-      <input class="form-input" id="reg-subaccount" placeholder="ACCT_xxxxxxxxxx"/>
+      <label class="form-label">Paystack Subaccount Code
+        <span style="color:var(--muted);text-transform:none;font-size:.72rem">(optional — for automatic payouts)</span>
+      </label>
+      <input class="form-input" id="reg-subaccount" placeholder="ACCT_xxxxxxxxxx (optional)"/>
+      <div style="margin-top:.5rem;background:var(--card);border:1px solid var(--border);
+                  border-radius:9px;padding:.65rem .9rem;font-size:.76rem;color:var(--muted);line-height:1.65">
+        📌 <strong style="color:var(--text)">How to get this:</strong>
+        Log into <strong style="color:var(--accent)">dashboard.paystack.com</strong> →
+        Subaccounts → Create Subaccount → Set <strong style="color:var(--warn)">Transaction Split to 0% your share / 100% subaccount</strong>
+        → Copy the <code style="color:var(--accent);background:rgba(0,229,160,.1);padding:.1rem .3rem;border-radius:3px">ACCT_xxx</code> code here.<br/>
+        <span style="color:var(--accent)">✓ DuesPay GH automatically deducts the platform fee before sending the rest to your account.</span>
+      </div>
     </div>
     <div class="form-group">
       <label class="form-label">Password *</label>
       <input class="form-input" type="password" id="reg-pass" placeholder="Min 8 characters"/>
     </div>
+
+    <!-- DUES SETUP DURING REGISTRATION -->
+    <div style="background:rgba(0,229,160,.05);border:1px solid rgba(0,229,160,.2);
+                border-radius:14px;padding:1.25rem;margin:1.25rem 0">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;
+                  margin-bottom:.25rem;color:var(--accent)">💰 Set Up Your SRC Dues</div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:1rem;line-height:1.5">
+        Set how much each student pays. This will appear as <strong style="color:var(--text)">SRC Dues</strong>
+        when students click "Pay Dues" and select your school. You can add more dues types from your dashboard later.
+      </div>
+
+      <div id="reg-dues-list">
+        <!-- First dues row -->
+        <div class="reg-dues-row" id="reg-dues-0"
+             style="background:var(--card);border:1px solid var(--border);border-radius:10px;
+                    padding:.85rem;margin-bottom:.6rem">
+          <div class="form-row" style="margin-bottom:.5rem">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Dues Name *</label>
+              <input class="form-input" id="rd-name-0" value="SRC Dues 2024/2025"
+                     placeholder="e.g. SRC Dues 2024"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Amount (GHC) *</label>
+              <input class="form-input" id="rd-amount-0" type="number"
+                     placeholder="e.g. 50" min="1" step="0.01"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Deadline (optional)</label>
+              <input class="form-input" id="rd-deadline-0" type="date"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label class="form-label">Description</label>
+              <input class="form-input" id="rd-desc-0"
+                     placeholder="Brief description…"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" onclick="addRegDuesRow()"
+              style="background:none;border:1px dashed var(--border);color:var(--muted);
+                     width:100%;padding:.6rem;border-radius:8px;cursor:pointer;
+                     font-size:.82rem;transition:all .2s"
+              onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+              onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        + Add another dues type
+      </button>
+    </div>
+
     <button class="btn-pay-now" onclick="registerSchool()" style="margin-top:.5rem">
-      Register School →
+      🚀 Register & Go Live
     </button>
     <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-top:.85rem">
       Already registered? <span style="color:var(--accent);cursor:pointer" onclick="showPage('school-login')">Login here</span>
@@ -1141,10 +1204,11 @@ function initPayment() {
       student_name: name, student_id: sid, level,
       school: currentSchool.name, dues: selectedDues.name, phone
     },
-    // Auto-split: school gets their share, you get your fee
+    // Auto-split: your fee comes to you, rest goes to school
     ...(currentSchool.subaccount ? {
       subaccount: currentSchool.subaccount,
-      bearer: 'subaccount',
+      bearer: 'account',
+      transaction_charge: Math.round(selectedDues.amount * PLATFORM_FEE_PCT * 100),
     } : {}),
 
     callback: function(response) {
@@ -1440,6 +1504,59 @@ function selectPlan(plan, el) {
   el.classList.add('selected');
 }
 
+let regDuesCount = 1; // track how many dues rows added
+
+function addRegDuesRow() {
+  const idx = regDuesCount;
+  const container = document.getElementById('reg-dues-list');
+  const row = document.createElement('div');
+  row.className = 'reg-dues-row';
+  row.id = `reg-dues-${idx}`;
+  row.style.cssText = 'background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.85rem;margin-bottom:.6rem;position:relative';
+  row.innerHTML = `
+    <button type="button" onclick="this.parentElement.remove()"
+            style="position:absolute;top:.5rem;right:.5rem;background:rgba(255,77,77,.15);
+                   border:1px solid rgba(255,77,77,.3);color:var(--danger);border-radius:6px;
+                   width:24px;height:24px;cursor:pointer;font-size:.75rem">✕</button>
+    <div class="form-row" style="margin-bottom:.5rem">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Dues Name *</label>
+        <input class="form-input" id="rd-name-${idx}" placeholder="e.g. Level 300 Dues"/>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Amount (GHC) *</label>
+        <input class="form-input" id="rd-amount-${idx}" type="number" placeholder="e.g. 30" min="1" step="0.01"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Deadline (optional)</label>
+        <input class="form-input" id="rd-deadline-${idx}" type="date"/>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Description</label>
+        <input class="form-input" id="rd-desc-${idx}" placeholder="Brief description…"/>
+      </div>
+    </div>`;
+  container.appendChild(row);
+  regDuesCount++;
+}
+
+function collectRegDues() {
+  const dues = [];
+  document.querySelectorAll('.reg-dues-row').forEach((row, i) => {
+    const idx  = row.id.replace('reg-dues-','');
+    const name = document.getElementById(`rd-name-${idx}`)?.value.trim();
+    const amt  = parseFloat(document.getElementById(`rd-amount-${idx}`)?.value);
+    const dead = document.getElementById(`rd-deadline-${idx}`)?.value;
+    const desc = document.getElementById(`rd-desc-${idx}`)?.value.trim();
+    if (name && amt && amt > 0) {
+      dues.push({ id:'d'+Date.now()+i, name, amount:amt, deadline:dead||'', desc:desc||'' });
+    }
+  });
+  return dues;
+}
+
 async function registerSchool() {
   const name       = document.getElementById('reg-school').value.trim();
   const src        = document.getElementById('reg-src').value.trim();
@@ -1452,6 +1569,13 @@ async function registerSchool() {
   if (!name||!src||!email||!pass) { showToast('Please fill all required fields.', true); return; }
   if (pass.length < 8) { showToast('Password must be at least 8 characters.', true); return; }
 
+  // Collect dues from form
+  const dues = collectRegDues();
+  if (!dues.length) {
+    showToast('Please set at least one dues type with a name and amount.', true);
+    return;
+  }
+
   // Check if email already exists
   const existing = await db.collection('dp_schools').where('email','==',email).get();
   if (!existing.empty) { showToast('Email already registered.', true); return; }
@@ -1461,7 +1585,7 @@ async function registerSchool() {
     plan: selectedPlan,
     active: true,
     logo: name.substring(0,2).toUpperCase(),
-    dues: [],
+    dues,
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -1469,7 +1593,7 @@ async function registerSchool() {
     const ref = await db.collection('dp_schools').add(school);
     currentSchool = { id: ref.id, ...school };
     showPage('dashboard');
-    showToast(`${src} registered! Welcome aboard. 🎉`);
+    showToast(`${src} registered with ${dues.length} dues type${dues.length>1?'s':''}! Welcome aboard 🎉`);
   } catch(e) {
     showToast('Error: ' + e.message, true);
   }
