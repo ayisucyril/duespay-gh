@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DuesPay GH — School Dues Payment Platform</title>
+<script src="https://js.paystack.co/v1/inline.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23050a06'/><text x='50' y='68' font-size='58' text-anchor='middle' font-family='Arial Black' fill='%2300e5a0'>D</text></svg>"/>
+<style>
+:root {
+  --bg:#050a06; --surface:#0d110e; --card:#131a14; --border:#1e2b1f;
+  --accent:#00e5a0; --accent2:#7c5cfc; --accent3:#ff6b35;
+  --text:#e8f0e9; --muted:#5a7a5c; --gold:#ffd700;
+  --danger:#ff4d4d; --warn:#ff9500; --info:#3b9eff;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;z-index:0;
+  background:radial-gradient(ellipse 70% 50% at 20% 10%,rgba(0,229,160,.06) 0%,transparent 60%),
+             radial-gradient(ellipse 60% 60% at 80% 80%,rgba(124,92,252,.06) 0%,transparent 55%);
+  pointer-events:none}
+
+/* ── PAGES ── */
+.page{display:none;position:relative;z-index:1;min-height:100vh}
+.page.active{display:block}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;
+    padding:0 2rem;height:64px;background:rgba(5,10,6,.9);backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border)}
+.nav-logo{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;
+          background:linear-gradient(135deg,var(--accent),var(--accent2));
+          -webkit-background-clip:text;-webkit-text-fill-color:transparent;cursor:pointer}
+.nav-links{display:flex;gap:1rem;align-items:center}
+.nav-btn{background:none;border:1px solid var(--border);color:var(--text);
+         padding:.4rem .9rem;border-radius:8px;font-family:'DM Sans',sans-serif;
+         font-size:.85rem;cursor:pointer;transition:all .2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.primary{background:var(--accent);color:#050a06;border-color:var(--accent);font-weight:600}
+.nav-btn.primary:hover{background:#00ffb3;color:#050a06}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:6rem 2rem 4rem;max-width:900px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;
+            background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);
+            color:var(--accent);font-size:.78rem;font-weight:500;letter-spacing:.08em;
+            text-transform:uppercase;padding:.35rem 1rem;border-radius:20px;margin-bottom:1.5rem}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(2.5rem,6vw,4.5rem);
+         font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:1.25rem}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{font-size:1.1rem;color:var(--muted);line-height:1.7;max-width:580px;margin:0 auto 2.5rem}
+.hero-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.btn-hero{padding:.85rem 2rem;border-radius:12px;font-family:'Syne',sans-serif;
+          font-size:1rem;font-weight:700;cursor:pointer;border:none;transition:all .25s}
+.btn-hero.primary{background:var(--accent);color:#050a06}
+.btn-hero.primary:hover{background:#00ffb3;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,229,160,.25)}
+.btn-hero.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+.btn-hero.secondary:hover{border-color:var(--accent2);color:var(--accent2)}
+
+/* ── HOW IT WORKS ── */
+.section{padding:4rem 2rem;max-width:1100px;margin:0 auto}
+.section-label{font-size:.75rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+               color:var(--accent);margin-bottom:.75rem}
+.section-title{font-family:'Syne',sans-serif;font-size:clamp(1.8rem,3vw,2.5rem);
+               font-weight:800;letter-spacing:-.02em;margin-bottom:3rem}
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem}
+.step-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.step-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;
+          color:var(--accent);opacity:.3;margin-bottom:.75rem}
+.step-card h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.5rem}
+.step-card p{font-size:.85rem;color:var(--muted);line-height:1.6}
+
+/* ── PRICING ── */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem}
+.pricing-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem;position:relative}
+.pricing-card.featured{border-color:var(--accent);background:rgba(0,229,160,.04)}
+.pricing-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+               background:var(--accent);color:#050a06;font-size:.72rem;font-weight:700;
+               padding:.3rem .8rem;border-radius:20px;white-space:nowrap}
+.pricing-name{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+.pricing-price{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;
+               color:var(--accent);margin-bottom:.25rem}
+.pricing-price span{font-size:.9rem;font-weight:400;color:var(--muted)}
+.pricing-desc{font-size:.83rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.5}
+.pricing-features{list-style:none;margin-bottom:1.5rem}
+.pricing-features li{font-size:.83rem;color:var(--text);padding:.35rem 0;
+                     border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.5rem}
+.pricing-features li:last-child{border-bottom:none}
+.pricing-features li::before{content:'✓';color:var(--accent);font-weight:700;flex-shrink:0}
+.btn-pricing{width:100%;padding:.75rem;border-radius:10px;font-family:'Syne',sans-serif;
+             font-size:.9rem;font-weight:700;cursor:pointer;border:none;transition:all .2s}
+.btn-pricing.accent{background:var(--accent);color:#050a06}
+.btn-pricing.accent:hover{background:#00ffb3}
+.btn-pricing.outline{background:none;border:1px solid var(--border);color:var(--text)}
+.btn-pricing.outline:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── STATS ── */
+.stats-bar{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+           padding:2.5rem 2rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+           gap:2rem;text-align:center;margin:2rem 0}
+.stat-val{font-family:'Syne',sans-serif;font-size:2.2rem;font-weight:800;color:var(--accent)}
+.stat-label{font-size:.82rem;color:var(--muted);margin-top:.25rem}
+
+/* ── SCHOOL SELECTOR ── */
+.search-box{max-width:600px;margin:0 auto 2rem;position:relative}
+.search-box input{width:100%;background:var(--card);border:1px solid var(--border);
+                  border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;
+                  font-size:1rem;padding:.85rem 1.25rem .85rem 3rem;outline:none;transition:all .2s}
+.search-box input:focus{border-color:var(--accent)}
+.search-box input::placeholder{color:var(--muted)}
+.search-box .search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);
+                          color:var(--muted);font-size:1.1rem}
+.schools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+.school-card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+             padding:1.25rem;cursor:pointer;transition:all .2s}
+.school-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.school-logo{width:52px;height:52px;border-radius:12px;background:var(--accent2);
+             display:flex;align-items:center;justify-content:center;
+             font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;
+             color:#fff;margin-bottom:.85rem}
+.school-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:.25rem}
+.school-meta{font-size:.78rem;color:var(--muted)}
+.school-dues{font-size:.82rem;color:var(--accent);font-weight:600;margin-top:.5rem}
+
+/* ── PAYMENT FORM ── */
+.pay-wrap{max-width:520px;margin:0 auto;padding:2rem 1.5rem}
+.pay-header{text-align:center;margin-bottom:2rem}
+.pay-school-badge{display:inline-flex;align-items:center;gap:.5rem;
+                  background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);
+                  color:var(--accent);font-size:.8rem;padding:.35rem .85rem;
+                  border-radius:20px;margin-bottom:1rem}
+.pay-header h2{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800}
+.pay-header p{font-size:.88rem;color:var(--muted);margin-top:.35rem}
+.dues-list{margin-bottom:1.5rem}
+.dues-item{background:var(--card);border:1px solid var(--border);border-radius:12px;
+           padding:1rem 1.25rem;margin-bottom:.6rem;cursor:pointer;transition:all .2s;
+           display:flex;justify-content:space-between;align-items:center}
+.dues-item:hover,.dues-item.selected{border-color:var(--accent);background:rgba(0,229,160,.05)}
+.dues-item .dues-name{font-weight:500;font-size:.92rem}
+.dues-item .dues-info{font-size:.75rem;color:var(--muted);margin-top:.2rem}
+.dues-item .dues-amount{font-family:'Syne',sans-serif;font-weight:800;color:var(--gold);font-size:1.1rem}
+.dues-item .dues-deadline{font-size:.72rem;color:var(--warn);margin-top:.2rem;text-align:right}
+.form-group{margin-bottom:1rem}
+.form-label{display:block;font-size:.8rem;font-weight:500;color:var(--muted);
+            margin-bottom:.4rem;letter-spacing:.04em;text-transform:uppercase}
+.form-input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:10px;
+            color:var(--text);font-family:'DM Sans',sans-serif;font-size:.92rem;
+            padding:.7rem 1rem;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--muted)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.btn-pay-now{width:100%;background:linear-gradient(135deg,var(--accent),#00c98a);
+             color:#050a06;border:none;padding:.9rem;border-radius:12px;
+             font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;
+             cursor:pointer;transition:all .25s;margin-top:.5rem;
+             display:flex;align-items:center;justify-content:center;gap:.5rem}
+.btn-pay-now:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,229,160,.3)}
+.btn-pay-now:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.pay-security{text-align:center;font-size:.73rem;color:var(--muted);margin-top:.75rem}
+.paystack-badge{background:#011B33;color:#00c3f7;font-size:.65rem;font-weight:700;
+                padding:.15rem .4rem;border-radius:4px;margin-left:.3rem}
+
+/* ── RECEIPT ── */
+.receipt-wrap{max-width:480px;margin:2rem auto;padding:0 1.5rem}
+.receipt-card{background:var(--card);border:1px solid var(--accent);border-radius:20px;
+              padding:2rem;text-align:center}
+.receipt-icon{width:72px;height:72px;border-radius:50%;background:rgba(0,229,160,.15);
+              border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;
+              margin:0 auto 1rem;font-size:2rem}
+.receipt-card h2{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:.35rem}
+.receipt-card p{font-size:.88rem;color:var(--muted);margin-bottom:1.25rem}
+.receipt-details{background:var(--surface);border-radius:12px;padding:1rem;margin-bottom:1.25rem;text-align:left}
+.receipt-row{display:flex;justify-content:space-between;align-items:center;
+             padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.receipt-row:last-child{border-bottom:none}
+.receipt-row .label{color:var(--muted)}
+.receipt-row .value{font-weight:500;color:var(--text)}
+.receipt-row .value.green{color:var(--accent)}
+.receipt-ref{font-size:.72rem;color:var(--muted);margin-top:.75rem}
+.btn-receipt{background:var(--accent);color:#050a06;border:none;padding:.75rem 1.5rem;
+             border-radius:10px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;
+             cursor:pointer;margin:.35rem;transition:all .2s}
+.btn-receipt:hover{background:#00ffb3}
+.btn-receipt.outline{background:none;border:1px solid var(--border);color:var(--text)}
+
+/* ── DASHBOARD ── */
+.dash-wrap{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.dash-header{display:flex;align-items:center;justify-content:space-between;
+             margin-bottom:2rem;flex-wrap:gap}
+.dash-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800}
+.dash-subtitle{font-size:.85rem;color:var(--muted);margin-top:.2rem}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem}
+.metric-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem}
+.metric-val{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800}
+.metric-val.green{color:var(--accent)}
+.metric-val.purple{color:var(--accent2)}
+.metric-val.gold{color:var(--gold)}
+.metric-sub{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.dash-panel{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.dash-panel h3{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:1rem}
+.payment-row{display:flex;align-items:center;justify-content:space-between;
+             padding:.65rem 0;border-bottom:1px solid var(--border);font-size:.83rem}
+.payment-row:last-child{border-bottom:none}
+.payment-row .name{font-weight:500}
+.payment-row .id{color:var(--muted);font-size:.75rem}
+.payment-row .amt{color:var(--accent);font-weight:600}
+.payment-row .time{color:var(--muted);font-size:.72rem}
+.badge{font-size:.68rem;font-weight:600;padding:.2rem .5rem;border-radius:5px}
+.badge.green{background:rgba(0,229,160,.12);color:var(--accent)}
+.badge.warn{background:rgba(255,149,0,.12);color:var(--warn)}
+.dues-mgr{margin-top:.75rem}
+.dues-mgr-item{display:flex;align-items:center;justify-content:space-between;
+               background:var(--surface);border-radius:10px;padding:.75rem 1rem;
+               margin-bottom:.5rem;font-size:.83rem}
+.dues-mgr-item .dname{font-weight:500}
+.dues-mgr-item .damt{color:var(--gold);font-weight:600}
+.dues-mgr-item .dpaid{color:var(--accent);font-size:.75rem}
+.btn-sm{background:var(--accent2);color:#fff;border:none;padding:.3rem .75rem;
+        border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-sm:hover{opacity:.85}
+.btn-sm.danger{background:rgba(255,77,77,.15);color:var(--danger);border:1px solid rgba(255,77,77,.3)}
+
+/* ── SUPER ADMIN ── */
+.super-table{width:100%;border-collapse:collapse;font-size:.83rem}
+.super-table th{text-align:left;padding:.6rem .75rem;color:var(--muted);
+                font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;
+                border-bottom:1px solid var(--border)}
+.super-table td{padding:.7rem .75rem;border-bottom:1px solid var(--border)}
+.super-table tr:last-child td{border-bottom:none}
+.super-table tr:hover td{background:rgba(0,229,160,.03)}
+
+/* ── MODALS ── */
+.modal-backdrop{display:none;position:fixed;inset:0;z-index:300;
+                background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+                align-items:center;justify-content:center;padding:1rem}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:20px;
+       padding:2rem;width:100%;max-width:460px;
+       animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);max-height:90vh;overflow-y:auto}
+@keyframes modalIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-head h3{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;
+       background:var(--surface);border:1px solid var(--border);
+       border-left:3px solid var(--accent);border-radius:10px;
+       padding:.85rem 1.2rem;font-size:.85rem;max-width:280px;
+       transform:translateX(120%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+       display:flex;align-items:center;gap:.6rem}
+.toast.show{transform:translateX(0)}
+.toast.error{border-left-color:var(--danger)}
+
+/* ── REGISTER FORM ── */
+.register-wrap{max-width:560px;margin:0 auto;padding:2rem 1.5rem}
+.register-wrap h2{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:.35rem}
+.register-wrap p{font-size:.88rem;color:var(--muted);margin-bottom:2rem}
+.plan-picker{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1.5rem}
+.plan-opt{background:var(--card);border:1px solid var(--border);border-radius:10px;
+          padding:.85rem;cursor:pointer;transition:all .2s;text-align:center}
+.plan-opt:hover,.plan-opt.selected{border-color:var(--accent);background:rgba(0,229,160,.05)}
+.plan-opt-name{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700}
+.plan-opt-price{font-size:.75rem;color:var(--accent);margin-top:.2rem}
+
+/* ── BACK BTN ── */
+.back-btn{display:inline-flex;align-items:center;gap:.4rem;background:none;border:none;
+          color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.85rem;
+          cursor:pointer;padding:.5rem 0;margin-bottom:1.5rem;transition:color .2s}
+.back-btn:hover{color:var(--accent)}
+
+@media(max-width:640px){
+  .dash-grid{grid-template-columns:1fr}
+  .form-row{grid-template-columns:1fr}
+  .plan-picker{grid-template-columns:1fr}
+  nav{padding:0 1rem}
+  .hero{padding:4rem 1rem 2.5rem}
+}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+</head>
+<body>
+
+<!-- ═══════════ LANDING PAGE ═══════════ -->
+<div class="page active" id="page-home">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+    <div class="nav-links">
+      <button class="nav-btn" onclick="showPage('schools')">Pay Dues</button>
+      <button class="nav-btn" onclick="showPage('school-login')">School Login</button>
+      <button class="nav-btn primary" onclick="showPage('register')">Register School</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badge">🇬🇭 Made for Ghana</div>
+    <h1>Pay Your SRC Dues<br><em>Online. Instantly.</em></h1>
+    <p>No more queues at the bank. No more chasing receipts. Students pay online, SRC sees it immediately. Built for every school in Ghana.</p>
+    <div class="hero-btns">
+      <button class="btn-hero primary" onclick="showPage('schools')">Pay My Dues Now</button>
+      <button class="btn-hero secondary" onclick="showPage('register')">Register Your School</button>
+    </div>
+  </section>
+
+  <div class="stats-bar">
+    <div><div class="stat-val">50+</div><div class="stat-label">Schools onboarded</div></div>
+    <div><div class="stat-val">12,000+</div><div class="stat-label">Students served</div></div>
+    <div><div class="stat-val">GHC 800K+</div><div class="stat-label">Dues collected</div></div>
+    <div><div class="stat-val">99.9%</div><div class="stat-label">Uptime</div></div>
+  </div>
+
+  <section class="section">
+    <div class="section-label">How it works</div>
+    <div class="section-title">Simple for students.<br>Powerful for SRC.</div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">01</div>
+        <h3>Find your school</h3>
+        <p>Search for your school or university from our growing list of registered institutions.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02</div>
+        <h3>Select your dues</h3>
+        <p>Choose which dues to pay — SRC dues, level dues, departmental dues and more.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03</div>
+        <h3>Pay securely</h3>
+        <p>Pay instantly with Mobile Money, debit card, or bank transfer via Paystack.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">04</div>
+        <h3>Get your receipt</h3>
+        <p>Instant digital receipt sent to your email. SRC sees your payment immediately.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-label">Pricing</div>
+    <div class="section-title">Simple, transparent pricing</div>
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-name">Starter</div>
+        <div class="pricing-price">Free <span>forever</span></div>
+        <div class="pricing-desc">Perfect for small SRCs getting started with online payments.</div>
+        <ul class="pricing-features">
+          <li>Up to 200 students/month</li>
+          <li>1 dues type</li>
+          <li>Basic dashboard</li>
+          <li>Email receipts</li>
+          <li>3% platform fee per transaction</li>
+        </ul>
+        <button class="btn-pricing outline" onclick="showPage('register')">Get Started Free</button>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Most Popular</div>
+        <div class="pricing-name">Growth</div>
+        <div class="pricing-price">GHC 150 <span>/month</span></div>
+        <div class="pricing-desc">For active SRCs with multiple dues types and large student bodies.</div>
+        <ul class="pricing-features">
+          <li>Unlimited students</li>
+          <li>Up to 10 dues types</li>
+          <li>Full dashboard + reports</li>
+          <li>Export to Excel/PDF</li>
+          <li>Email receipts</li>
+          <li>1.5% platform fee per transaction</li>
+        </ul>
+        <button class="btn-pricing accent" onclick="showPage('register')">Start Free Trial</button>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-name">Enterprise</div>
+        <div class="pricing-price">GHC 400 <span>/month</span></div>
+        <div class="pricing-desc">For universities and large institutions with complex payment needs.</div>
+        <ul class="pricing-features">
+          <li>Unlimited everything</li>
+          <li>Custom branding</li>
+          <li>API access</li>
+          <li>SMS notifications</li>
+          <li>Dedicated support</li>
+          <li>0.8% platform fee per transaction</li>
+        </ul>
+        <button class="btn-pricing outline" onclick="showPage('register')">Contact Sales</button>
+      </div>
+    </div>
+  </section>
+
+  <div style="text-align:center;padding:3rem 2rem;border-top:1px solid var(--border);color:var(--muted);font-size:.82rem">
+    © 2024 DuesPay GH · Built for Ghana's students · Powered by Paystack
+  </div>
+</div>
+
+<!-- ═══════════ SCHOOLS LIST ═══════════ -->
+<div class="page" id="page-schools">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+    <div class="nav-links">
+      <button class="nav-btn" onclick="showPage('school-login')">School Login</button>
+    </div>
+  </nav>
+  <div class="section">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <div class="section-label">Pay Dues</div>
+    <div class="section-title" style="margin-bottom:1.5rem">Select your school</div>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="school-search" placeholder="Search school name…" oninput="filterSchools(this.value)"/>
+    </div>
+    <div class="schools-grid" id="schools-grid"></div>
+  </div>
+</div>
+
+<!-- ═══════════ PAYMENT PAGE ═══════════ -->
+<div class="page" id="page-payment">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+  </nav>
+  <div class="pay-wrap">
+    <button class="back-btn" onclick="showPage('schools')">← Back to schools</button>
+    <div class="pay-header">
+      <div class="pay-school-badge" id="pay-school-badge">🏫 School Name</div>
+      <h2>Pay Your Dues</h2>
+      <p id="pay-school-desc">Select what you want to pay below</p>
+    </div>
+
+    <div class="dues-list" id="dues-list"></div>
+
+    <div class="form-group">
+      <label class="form-label">Full Name *</label>
+      <input class="form-input" id="student-name" placeholder="e.g. Kofi Mensah"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Student ID *</label>
+        <input class="form-input" id="student-id" placeholder="e.g. 20210001"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Level / Year</label>
+        <input class="form-input" id="student-level" placeholder="e.g. Level 300"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email Address *</label>
+      <input class="form-input" type="email" id="student-email" placeholder="e.g. kofi@email.com"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Phone Number</label>
+      <input class="form-input" type="tel" id="student-phone" placeholder="e.g. 0241234567"/>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.35rem">
+        <span style="color:var(--muted)">Selected dues</span>
+        <span id="selected-dues-name" style="font-weight:500">None selected</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:.85rem;margin-bottom:.35rem">
+        <span style="color:var(--muted)">Platform fee (3%)</span>
+        <span id="platform-fee">GHC 0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:1rem;font-weight:700;padding-top:.5rem;border-top:1px solid var(--border)">
+        <span>Total</span>
+        <span id="pay-total" style="color:var(--gold)">GHC 0.00</span>
+      </div>
+    </div>
+
+    <button class="btn-pay-now" id="pay-now-btn" onclick="initPayment()" disabled>
+      🔒 Pay Securely with Paystack
+    </button>
+    <div class="pay-security">Secured by Paystack · Mobile Money & Cards accepted <span class="paystack-badge">PAYSTACK</span></div>
+  </div>
+</div>
+
+<!-- ═══════════ RECEIPT PAGE ═══════════ -->
+<div class="page" id="page-receipt">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+  </nav>
+  <div class="receipt-wrap">
+    <div class="receipt-card">
+      <div class="receipt-icon">✅</div>
+      <h2>Payment Successful!</h2>
+      <p>Your dues payment has been confirmed and recorded.</p>
+      <div class="receipt-details">
+        <div class="receipt-row"><span class="label">Student</span><span class="value" id="r-name">—</span></div>
+        <div class="receipt-row"><span class="label">Student ID</span><span class="value" id="r-id">—</span></div>
+        <div class="receipt-row"><span class="label">School</span><span class="value" id="r-school">—</span></div>
+        <div class="receipt-row"><span class="label">Dues paid</span><span class="value" id="r-dues">—</span></div>
+        <div class="receipt-row"><span class="label">Amount</span><span class="value green" id="r-amount">—</span></div>
+        <div class="receipt-row"><span class="label">Date</span><span class="value" id="r-date">—</span></div>
+        <div class="receipt-row"><span class="label">Status</span><span class="value green">✓ Confirmed</span></div>
+      </div>
+      <div class="receipt-ref" id="r-ref">Ref: —</div>
+      <div style="margin-top:1.25rem">
+        <button class="btn-receipt" onclick="printReceipt()">🖨 Print Receipt</button>
+        <button class="btn-receipt outline" onclick="showPage('schools')">Pay Another</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SCHOOL DASHBOARD ═══════════ -->
+<div class="page" id="page-dashboard">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+    <div class="nav-links">
+      <span style="font-size:.82rem;color:var(--muted)" id="dash-school-name">School Dashboard</span>
+      <button class="nav-btn" onclick="showAddDuesModal()">+ Add Dues</button>
+      <button class="nav-btn" onclick="showPage('home')">Logout</button>
+    </div>
+  </nav>
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div>
+        <div class="dash-title" id="dash-title">School Dashboard</div>
+        <div class="dash-subtitle">Real-time payment overview</div>
+      </div>
+      <button class="nav-btn primary" onclick="exportPayments()">⬇ Export Excel</button>
+    </div>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Total Collected</div>
+        <div class="metric-val green" id="m-total">GHC 0</div>
+        <div class="metric-sub">This semester</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Students Paid</div>
+        <div class="metric-val purple" id="m-count">0</div>
+        <div class="metric-sub">Unique payments</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Pending</div>
+        <div class="metric-val gold" id="m-pending">—</div>
+        <div class="metric-sub">Not yet paid</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">This Week</div>
+        <div class="metric-val green" id="m-week">GHC 0</div>
+        <div class="metric-sub">Last 7 days</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-panel">
+        <h3>Recent Payments</h3>
+        <div id="recent-payments">
+          <div style="color:var(--muted);font-size:.83rem;text-align:center;padding:1.5rem">No payments yet</div>
+        </div>
+      </div>
+      <div class="dash-panel">
+        <h3>Your Dues Types</h3>
+        <div class="dues-mgr" id="dues-manager"></div>
+        <button class="btn-sm" style="margin-top:.75rem;width:100%" onclick="showAddDuesModal()">+ Add New Dues Type</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ SUPER ADMIN ═══════════ -->
+<div class="page" id="page-superadmin">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+    <div class="nav-links">
+      <span style="font-size:.78rem;color:var(--accent);background:rgba(0,229,160,.1);padding:.25rem .65rem;border-radius:6px">Super Admin</span>
+      <button class="nav-btn" onclick="showPage('home')">Logout</button>
+    </div>
+  </nav>
+  <div class="dash-wrap">
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">Platform Overview</div>
+        <div class="dash-subtitle">All schools · All transactions</div>
+      </div>
+    </div>
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-label">Platform Revenue</div>
+        <div class="metric-val green" id="sa-revenue">GHC 0</div>
+        <div class="metric-sub">Your earnings (fees)</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total Transactions</div>
+        <div class="metric-val purple" id="sa-txns">0</div>
+        <div class="metric-sub">All time</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Active Schools</div>
+        <div class="metric-val gold" id="sa-schools">0</div>
+        <div class="metric-sub">Registered</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Total Volume</div>
+        <div class="metric-val green" id="sa-volume">GHC 0</div>
+        <div class="metric-sub">All payments</div>
+      </div>
+    </div>
+    <div class="dash-panel" style="margin-bottom:1.5rem">
+      <h3>Registered Schools</h3>
+      <table class="super-table" id="schools-table">
+        <thead>
+          <tr>
+            <th>School</th><th>Plan</th><th>Students Paid</th><th>Volume</th><th>Your Fee</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="schools-tbody"></tbody>
+      </table>
+    </div>
+    <div class="dash-panel">
+      <h3>Recent Transactions (All Schools)</h3>
+      <div id="all-transactions"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ REGISTER PAGE ═══════════ -->
+<div class="page" id="page-register">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+  </nav>
+  <div class="register-wrap">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <h2>Register Your School</h2>
+    <p>Get your school online in minutes. Start collecting dues today.</p>
+
+    <div style="margin-bottom:1.25rem">
+      <div class="form-label">Choose your plan</div>
+      <div class="plan-picker" id="plan-picker">
+        <div class="plan-opt selected" onclick="selectPlan('starter',this)">
+          <div class="plan-opt-name">Starter</div>
+          <div class="plan-opt-price">Free</div>
+        </div>
+        <div class="plan-opt" onclick="selectPlan('growth',this)">
+          <div class="plan-opt-name">Growth</div>
+          <div class="plan-opt-price">GHC 150/mo</div>
+        </div>
+        <div class="plan-opt" onclick="selectPlan('enterprise',this)">
+          <div class="plan-opt-name">Enterprise</div>
+          <div class="plan-opt-price">GHC 400/mo</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">School / Institution Name *</label>
+        <input class="form-input" id="reg-school" placeholder="e.g. KNUST"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">SRC / Association Name *</label>
+        <input class="form-input" id="reg-src" placeholder="e.g. KNUST SRC"/>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Financial Secretary Name *</label>
+        <input class="form-input" id="reg-name" placeholder="Full name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number *</label>
+        <input class="form-input" id="reg-phone" placeholder="0241234567"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email Address *</label>
+      <input class="form-input" id="reg-email" type="email" placeholder="src@school.edu.gh"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Paystack Subaccount Code * <span style="color:var(--muted);text-transform:none;font-size:.72rem">(from your Paystack dashboard)</span></label>
+      <input class="form-input" id="reg-subaccount" placeholder="ACCT_xxxxxxxxxx"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password *</label>
+      <input class="form-input" type="password" id="reg-pass" placeholder="Min 8 characters"/>
+    </div>
+    <button class="btn-pay-now" onclick="registerSchool()" style="margin-top:.5rem">
+      Register School →
+    </button>
+    <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-top:.85rem">
+      Already registered? <span style="color:var(--accent);cursor:pointer" onclick="showPage('school-login')">Login here</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ SCHOOL LOGIN ═══════════ -->
+<div class="page" id="page-school-login">
+  <nav>
+    <div class="nav-logo" onclick="showPage('home')">DuesPay GH</div>
+  </nav>
+  <div style="max-width:380px;margin:4rem auto;padding:0 1.5rem">
+    <button class="back-btn" onclick="showPage('home')">← Back</button>
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;margin-bottom:.35rem">School Login</h2>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:2rem">Access your dues dashboard</p>
+    <div class="form-group">
+      <label class="form-label">Email Address</label>
+      <input class="form-input" id="login-email" type="email" placeholder="src@school.edu.gh"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="Your password"
+             onkeydown="if(event.key==='Enter')schoolLogin()"/>
+    </div>
+    <button class="btn-pay-now" onclick="schoolLogin()">Login to Dashboard</button>
+    <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:1rem">
+      Super admin? <span style="color:var(--accent2);cursor:pointer" onclick="superAdminLogin()">Access here</span>
+    </p>
+  </div>
+</div>
+
+<!-- ═══════════ ADD DUES MODAL ═══════════ -->
+<div class="modal-backdrop" id="addDuesModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Add Dues Type</h3>
+      <button class="modal-close" onclick="closeModal('addDuesModal')">×</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Dues Name *</label>
+      <input class="form-input" id="d-name" placeholder="e.g. SRC Dues 2024"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Amount (GHC) *</label>
+        <input class="form-input" id="d-amount" type="number" placeholder="50.00"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deadline</label>
+        <input class="form-input" id="d-deadline" type="date"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description</label>
+      <input class="form-input" id="d-desc" placeholder="Brief description…"/>
+    </div>
+    <button class="btn-pay-now" onclick="addDuesType()">Add Dues Type</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="t-icon">✓</span> <span id="t-msg">Done</span></div>
+
+<script>
+// ═══════════════════════════════════════
+// CONFIG — Replace with your keys
+// ═══════════════════════════════════════
+const PAYSTACK_KEY = 'pk_test_15128a3fa59461d62456af1a299b48f98c9083c6';
+const PLATFORM_FEE_PCT = 0.03; // 3% your cut
+const SUPER_ADMIN_EMAIL = 'admin@duespaygh.com';
+const SUPER_ADMIN_PASS  = 'SuperAdmin@2024';
+
+// ═══════════════════════════════════════
+// FIREBASE INIT
+// ═══════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyCOlkyeec6vR-mpECHFSO7MhBc5eRooPOI",
+  authDomain:        "softhub-gh.firebaseapp.com",
+  projectId:         "softhub-gh",
+  storageBucket:     "softhub-gh.firebasestorage.app",
+  messagingSenderId: "545782586637",
+  appId:             "1:545782586637:web:9b9d196f34d3af45cba444"
+};
+firebase.initializeApp(firebaseConfig);
+const db   = firebase.firestore();
+const auth = firebase.auth();
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let schools = [];
+let payments = [];
+let currentSchool = null;
+let selectedDues  = null;
+let selectedPlan  = 'starter';
+let unsubSchools  = null;
+let unsubPayments = null;
+
+// ── DB STATUS ──
+const dbStatus = document.createElement('div');
+dbStatus.style.cssText = 'position:fixed;top:72px;right:1rem;z-index:99;font-size:.72rem;font-weight:500;padding:.25rem .65rem;border-radius:20px;display:flex;align-items:center;gap:.35rem;transition:opacity .5s;background:rgba(255,200,0,.1);border:1px solid rgba(255,200,0,.3);color:#ffc800';
+dbStatus.innerHTML = '<span style="width:6px;height:6px;border-radius:50%;background:currentColor;animation:blink 1.4s ease infinite;display:inline-block"></span> Connecting…';
+document.body.appendChild(dbStatus);
+
+function setDbStatus(s) {
+  const map = {
+    connecting: {bg:'rgba(255,200,0,.1)',border:'rgba(255,200,0,.3)',color:'#ffc800',text:'Connecting…'},
+    connected:  {bg:'rgba(0,229,160,.1)',border:'rgba(0,229,160,.3)',color:'#00e5a0',text:'Firebase ✓'},
+    error:      {bg:'rgba(255,77,77,.1)',border:'rgba(255,77,77,.3)',color:'#ff4d4d',text:'DB Error'},
+  };
+  const m = map[s];
+  dbStatus.style.background = m.bg;
+  dbStatus.style.border = '1px solid ' + m.border;
+  dbStatus.style.color  = m.color;
+  dbStatus.innerHTML = `<span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span> ${m.text}`;
+  if (s === 'connected') setTimeout(() => dbStatus.style.opacity = '0', 3000);
+}
+
+// ── LOAD SCHOOLS (realtime) ──
+function startListening() {
+  if (unsubSchools) unsubSchools();
+  unsubSchools = db.collection('dp_schools').orderBy('createdAt','desc')
+    .onSnapshot(snap => {
+      schools = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      setDbStatus('connected');
+      // Re-render if on schools page
+      if (document.getElementById('page-schools').classList.contains('active')) renderSchools();
+      if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+    }, err => { setDbStatus('error'); console.error(err); });
+
+  if (unsubPayments) unsubPayments();
+  unsubPayments = db.collection('dp_payments').orderBy('date','desc')
+    .onSnapshot(snap => {
+      payments = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+      if (document.getElementById('page-superadmin').classList.contains('active')) renderSuperAdmin();
+    }, err => console.error(err));
+}
+
+startListening();
+
+// ── SEED DEMO DATA if Firestore is empty ──
+async function seedIfEmpty() {
+  const snap = await db.collection('dp_schools').limit(1).get();
+  if (!snap.empty) return;
+  const batch = db.batch();
+  const ts = firebase.firestore.FieldValue.serverTimestamp();
+  const demos = [
+    { name:'KNUST', src:'KNUST SRC', email:'src@knust.edu.gh', pass:'demo123',
+      plan:'growth', subaccount:'', active:true, logo:'KN', createdAt:ts,
+      dues:[
+        {id:'d1',name:'SRC Dues 2024',amount:50,desc:'Main SRC dues for 2024/2025',deadline:'2024-12-31'},
+        {id:'d2',name:'Level 300 Dues',amount:30,desc:'Level 300 departmental dues',deadline:'2024-11-30'},
+      ]},
+    { name:'UG Legon', src:'UG SRC', email:'src@ug.edu.gh', pass:'demo123',
+      plan:'enterprise', subaccount:'', active:true, logo:'UG', createdAt:ts,
+      dues:[{id:'d3',name:'SRC Dues 2024',amount:60,desc:'University of Ghana SRC dues',deadline:'2024-12-31'}]},
+    { name:'UCC', src:'UCC SRC', email:'src@ucc.edu.gh', pass:'demo123',
+      plan:'starter', subaccount:'', active:true, logo:'UC', createdAt:ts,
+      dues:[{id:'d4',name:'SRC Dues',amount:40,desc:'UCC SRC dues 2024',deadline:'2024-12-31'}]},
+    { name:'Ashesi University', src:'Ashesi SRC', email:'src@ashesi.edu.gh', pass:'demo123',
+      plan:'growth', subaccount:'', active:true, logo:'AS', createdAt:ts,
+      dues:[{id:'d5',name:'Student Dues',amount:80,desc:'Ashesi student association dues',deadline:'2024-12-31'}]},
+  ];
+  demos.forEach(d => batch.set(db.collection('dp_schools').doc(), d));
+  await batch.commit();
+  console.log('Demo schools seeded.');
+}
+seedIfEmpty();
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  window.scrollTo(0,0);
+  if (name === 'schools') renderSchools();
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'superadmin') renderSuperAdmin();
+}
+
+// ═══════════════════════════════════════
+// SCHOOLS LIST
+// ═══════════════════════════════════════
+function renderSchools(filter='') {
+  const grid = document.getElementById('schools-grid');
+  const list = schools.filter(s => s.active &&
+    (s.name.toLowerCase().includes(filter.toLowerCase()) ||
+     s.src.toLowerCase().includes(filter.toLowerCase())));
+
+  if (!list.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:3rem">No schools found.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(s => `
+    <div class="school-card" onclick="openSchool('${s.id}')">
+      <div class="school-logo" style="background:${logoColor(s.logo)}">${s.logo}</div>
+      <div class="school-name">${s.name}</div>
+      <div class="school-meta">${s.src}</div>
+      <div class="school-dues">${s.dues.length} dues type${s.dues.length!==1?'s':''} available</div>
+    </div>`).join('');
+}
+
+function logoColor(l) {
+  const colors = ['#7c5cfc','#00a878','#ff6b35','#3b9eff','#e8593c'];
+  return colors[(l.charCodeAt(0)+l.charCodeAt(1||0))%colors.length];
+}
+
+function filterSchools(v) { renderSchools(v); }
+
+async function openSchool(id) {
+  // Always fetch fresh data from Firestore
+  try {
+    const doc = await db.collection('dp_schools').doc(id).get();
+    if (doc.exists) {
+      currentSchool = { id: doc.id, ...doc.data() };
+    } else {
+      currentSchool = schools.find(s => s.id === id);
+    }
+  } catch(e) {
+    currentSchool = schools.find(s => s.id === id);
+  }
+  if (!currentSchool) return;
+
+  document.getElementById('pay-school-badge').textContent = '🏫 ' + currentSchool.name;
+  document.getElementById('pay-school-desc').textContent = currentSchool.src + ' — Select your dues below';
+
+  const list = document.getElementById('dues-list');
+  list.innerHTML = currentSchool.dues.map(d => `
+    <div class="dues-item" id="dues-${d.id}" onclick="selectDues('${d.id}')">
+      <div>
+        <div class="dues-name">${d.name}</div>
+        <div class="dues-info">${d.desc}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="dues-amount">GHC ${parseFloat(d.amount).toFixed(2)}</div>
+        ${d.deadline?`<div class="dues-deadline">Due: ${d.deadline}</div>`:''}
+      </div>
+    </div>`).join('');
+
+  selectedDues = null;
+  updatePaySummary();
+  showPage('payment');
+}
+
+function selectDues(id) {
+  document.querySelectorAll('.dues-item').forEach(el => el.classList.remove('selected'));
+  document.getElementById('dues-'+id)?.classList.add('selected');
+  selectedDues = currentSchool.dues.find(d => d.id === id);
+  updatePaySummary();
+}
+
+function updatePaySummary() {
+  if (!selectedDues) {
+    document.getElementById('selected-dues-name').textContent = 'None selected';
+    document.getElementById('platform-fee').textContent = 'GHC 0.00';
+    document.getElementById('pay-total').textContent = 'GHC 0.00';
+    document.getElementById('pay-now-btn').disabled = true;
+    return;
+  }
+  const fee = selectedDues.amount * PLATFORM_FEE_PCT;
+  const total = selectedDues.amount;
+  document.getElementById('selected-dues-name').textContent = selectedDues.name;
+  document.getElementById('platform-fee').textContent = `GHC ${fee.toFixed(2)}`;
+  document.getElementById('pay-total').textContent = `GHC ${total.toFixed(2)}`;
+  document.getElementById('pay-now-btn').disabled = false;
+}
+
+// ═══════════════════════════════════════
+// PAYMENT
+// ═══════════════════════════════════════
+function initPayment() {
+  const name  = document.getElementById('student-name').value.trim();
+  const sid   = document.getElementById('student-id').value.trim();
+  const email = document.getElementById('student-email').value.trim();
+  const level = document.getElementById('student-level').value.trim();
+  const phone = document.getElementById('student-phone').value.trim();
+
+  if (!name) { showToast('Please enter your full name.', true); return; }
+  if (!sid)  { showToast('Please enter your Student ID.', true); return; }
+  if (!email || !email.includes('@')) { showToast('Please enter a valid email.', true); return; }
+  if (!selectedDues) { showToast('Please select a dues type.', true); return; }
+
+  const amount = Math.round(selectedDues.amount * 100); // pesewas
+
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_KEY,
+    email,
+    amount,
+    currency: 'GHS',
+    ref: 'DP-' + Date.now() + '-' + Math.floor(Math.random()*9999),
+    metadata: {
+      student_name: name, student_id: sid, level,
+      school: currentSchool.name, dues: selectedDues.name, phone
+    },
+    // Subaccount split — uncomment when school has subaccount
+    // subaccount: currentSchool.subaccount,
+    // bearer: 'subaccount',
+
+    callback: function(response) {
+      onPaymentDone(response, {name, sid, email, level, phone});
+    },
+    onClose: function() {
+      showToast('Payment cancelled.', true);
+    }
+  });
+  handler.openIframe();
+}
+
+async function onPaymentDone(response, student) {
+  const payment = {
+    schoolId: currentSchool.id,
+    schoolName: currentSchool.name,
+    duesId: selectedDues.id,
+    duesName: selectedDues.name,
+    amount: selectedDues.amount,
+    fee: parseFloat((selectedDues.amount * PLATFORM_FEE_PCT).toFixed(2)),
+    studentName: student.name,
+    studentId: student.sid,
+    studentEmail: student.email,
+    level: student.level,
+    phone: student.phone,
+    ref: response.reference,
+    date: firebase.firestore.FieldValue.serverTimestamp(),
+    status: 'success'
+  };
+  // Save to Firestore
+  try {
+    await db.collection('dp_payments').add(payment);
+  } catch(e) { console.error('Payment save error:', e); }
+
+  // Show receipt
+  document.getElementById('r-name').textContent = student.name;
+  document.getElementById('r-id').textContent = student.sid;
+  document.getElementById('r-school').textContent = currentSchool.name;
+  document.getElementById('r-dues').textContent = selectedDues.name;
+  document.getElementById('r-amount').textContent = `GHC ${selectedDues.amount.toFixed(2)}`;
+  document.getElementById('r-date').textContent = new Date().toLocaleDateString('en-GH',{dateStyle:'full'});
+  document.getElementById('r-ref').textContent = `Reference: ${response.reference}`;
+
+  showPage('receipt');
+}
+
+function printReceipt() {
+  window.print();
+}
+
+// ═══════════════════════════════════════
+// SCHOOL AUTH
+// ═══════════════════════════════════════
+async function schoolLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+
+  if (!email || !pass) { showToast('Please enter email and password.', true); return; }
+
+  // Check super admin first
+  if (email === SUPER_ADMIN_EMAIL && pass === SUPER_ADMIN_PASS) {
+    showPage('superadmin'); return;
+  }
+
+  try {
+    const snap = await db.collection('dp_schools')
+      .where('email','==',email)
+      .where('pass','==',pass)
+      .limit(1).get();
+
+    if (snap.empty) {
+      showToast('Incorrect email or password.', true);
+      return;
+    }
+
+    const doc = snap.docs[0];
+    currentSchool = { id: doc.id, ...doc.data() };
+
+    if (!currentSchool.active) {
+      showToast('Your account has been suspended. Contact support.', true); return;
+    }
+
+    showPage('dashboard');
+    showToast('Welcome back, ' + currentSchool.src + '! 👋');
+  } catch(e) {
+    showToast('Login error: ' + e.message, true);
+  }
+}
+
+function superAdminLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  if (email === SUPER_ADMIN_EMAIL && pass === SUPER_ADMIN_PASS) {
+    showPage('superadmin');
+  } else {
+    showToast('Use super admin credentials.', true);
+  }
+}
+
+// ═══════════════════════════════════════
+// SCHOOL DASHBOARD
+// ═══════════════════════════════════════
+function renderDashboard() {
+  if (!currentSchool) return;
+  document.getElementById('dash-school-name').textContent = currentSchool.src;
+  document.getElementById('dash-title').textContent = currentSchool.src + ' Dashboard';
+
+  const myPayments = payments.filter(p => p.schoolId === currentSchool.id);
+  // Also refresh currentSchool from schools array
+  const freshSchool = schools.find(s => s.id === currentSchool.id);
+  if (freshSchool) currentSchool = freshSchool;
+  const total = myPayments.reduce((s,p) => s + p.amount, 0);
+  const week  = myPayments.filter(p => {
+    const d = p.date?.toDate ? p.date.toDate() : new Date(p.date);
+    return (Date.now() - d) < 7*24*60*60*1000;
+  }).reduce((s,p) => s + p.amount, 0);
+
+  document.getElementById('m-total').textContent  = `GHC ${total.toLocaleString()}`;
+  document.getElementById('m-count').textContent  = myPayments.length;
+  document.getElementById('m-pending').textContent = '—';
+  document.getElementById('m-week').textContent   = `GHC ${week.toLocaleString()}`;
+
+  // Recent payments
+  const recentEl = document.getElementById('recent-payments');
+  if (!myPayments.length) {
+    recentEl.innerHTML = `<div style="color:var(--muted);font-size:.83rem;text-align:center;padding:1.5rem">No payments yet. Share your payment link with students!</div>`;
+  } else {
+    recentEl.innerHTML = [...myPayments].reverse().slice(0,8).map(p => `
+      <div class="payment-row">
+        <div>
+          <div class="name">${p.studentName}</div>
+          <div class="id">${p.studentId} · ${p.duesName}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="amt">GHC ${p.amount.toFixed(2)}</div>
+          <div class="time">${p.date?.toDate ? p.date.toDate().toLocaleDateString() : (p.date?.toDate ? p.date.toDate() : new Date(p.date)).toLocaleDateString()}</div>
+        </div>
+        <span class="badge green">Paid</span>
+      </div>`).join('');
+  }
+
+  // Dues manager
+  const duesEl = document.getElementById('dues-manager');
+  if (!currentSchool.dues.length) {
+    duesEl.innerHTML = `<div style="color:var(--muted);font-size:.83rem">No dues types yet.</div>`;
+  } else {
+    duesEl.innerHTML = currentSchool.dues.map(d => {
+      const paid = payments.filter(p => p.duesId === d.id).length;
+      return `
+        <div class="dues-mgr-item">
+          <div>
+            <div class="dname">${d.name}</div>
+            <div class="dpaid">${paid} payment${paid!==1?'s':''}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="damt">GHC ${parseFloat(d.amount).toFixed(2)}</div>
+            <button class="btn-sm danger" style="margin-top:.3rem" onclick="deleteDues('${d.id}')">Remove</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+}
+
+function showAddDuesModal() { openModal('addDuesModal'); }
+
+async function addDuesType() {
+  const name     = document.getElementById('d-name').value.trim();
+  const amount   = parseFloat(document.getElementById('d-amount').value);
+  const deadline = document.getElementById('d-deadline').value;
+  const desc     = document.getElementById('d-desc').value.trim();
+
+  if (!name || !amount) { showToast('Please fill name and amount.', true); return; }
+
+  const newDue = { id:'d'+Date.now(), name, amount, deadline, desc };
+  const updatedDues = [...(currentSchool.dues || []), newDue];
+
+  try {
+    await db.collection('dp_schools').doc(currentSchool.id).update({ dues: updatedDues });
+    currentSchool.dues = updatedDues;
+    closeModal('addDuesModal');
+    renderDashboard();
+    showToast(`"${name}" added! ✓`);
+    ['d-name','d-amount','d-deadline','d-desc'].forEach(id => document.getElementById(id).value = '');
+  } catch(e) { showToast('Error: ' + e.message, true); }
+}
+
+async function deleteDues(id) {
+  if (!confirm('Remove this dues type?')) return;
+  const updatedDues = currentSchool.dues.filter(d => d.id !== id);
+  try {
+    await db.collection('dp_schools').doc(currentSchool.id).update({ dues: updatedDues });
+    currentSchool.dues = updatedDues;
+    renderDashboard();
+    showToast('Dues type removed.');
+  } catch(e) { showToast('Error: ' + e.message, true); }
+}
+
+function exportPayments() {
+  const myPayments = payments.filter(p => p.schoolId === currentSchool.id);
+  if (!myPayments.length) { showToast('No payments to export.', true); return; }
+  const rows = [
+    ['Student Name','Student ID','Level','Dues','Amount (GHC)','Date','Reference'],
+    ...myPayments.map(p => [p.studentName, p.studentId, p.level, p.duesName, p.amount, (p.date?.toDate ? p.date.toDate() : new Date(p.date)).toLocaleDateString(), p.ref])
+  ];
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = currentSchool.name.replace(/\s/g,'_') + '_payments.csv';
+  a.click();
+  showToast('Export downloaded!');
+}
+
+// ═══════════════════════════════════════
+// SUPER ADMIN
+// ═══════════════════════════════════════
+function renderSuperAdmin() {
+  const totalVolume  = payments.reduce((s,p) => s + p.amount, 0);
+  const totalRevenue = payments.reduce((s,p) => s + p.fee, 0);
+
+  document.getElementById('sa-revenue').textContent = `GHC ${totalRevenue.toFixed(2)}`;
+  document.getElementById('sa-txns').textContent    = payments.length;
+  document.getElementById('sa-schools').textContent = schools.length;
+  document.getElementById('sa-volume').textContent  = `GHC ${totalVolume.toLocaleString()}`;
+
+  // Schools table
+  const tbody = document.getElementById('schools-tbody');
+  tbody.innerHTML = schools.map(s => {
+    const sp = payments.filter(p => p.schoolId === s.id);
+    const vol = sp.reduce((t,p) => t + p.amount, 0);
+    const fee = sp.reduce((t,p) => t + p.fee, 0);
+    return `
+      <tr>
+        <td><strong>${s.name}</strong><br><span style="color:var(--muted);font-size:.75rem">${s.email}</span></td>
+        <td><span class="badge ${s.plan==='enterprise'?'warn':'green'}">${s.plan}</span></td>
+        <td>${sp.length}</td>
+        <td>GHC ${vol.toLocaleString()}</td>
+        <td style="color:var(--accent)">GHC ${fee.toFixed(2)}</td>
+        <td><span class="badge green">${s.active?'Active':'Inactive'}</span></td>
+        <td>
+          <button class="btn-sm danger" onclick="toggleSchool('${s.id}')">${s.active?'Suspend':'Activate'}</button>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // All transactions
+  const txEl = document.getElementById('all-transactions');
+  if (!payments.length) {
+    txEl.innerHTML = `<div style="color:var(--muted);font-size:.83rem;text-align:center;padding:1.5rem">No transactions yet.</div>`;
+  } else {
+    txEl.innerHTML = [...payments].reverse().slice(0,15).map(p => `
+      <div class="payment-row">
+        <div>
+          <div class="name">${p.studentName} — ${p.schoolName}</div>
+          <div class="id">${p.duesName} · ${p.studentId}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="amt">GHC ${p.amount.toFixed(2)}</div>
+          <div style="color:var(--accent);font-size:.72rem">Your fee: GHC ${p.fee.toFixed(2)}</div>
+        </div>
+        <span class="badge green">Paid</span>
+      </div>`).join('');
+  }
+}
+
+async function toggleSchool(id) {
+  const s = schools.find(x => x.id === id);
+  if (!s) return;
+  const newState = !s.active;
+  try {
+    await db.collection('dp_schools').doc(id).update({ active: newState });
+    showToast(`${s.name} ${newState?'activated':'suspended'}.`);
+  } catch(e) { showToast('Error: ' + e.message, true); }
+}
+
+// ═══════════════════════════════════════
+// REGISTER
+// ═══════════════════════════════════════
+function selectPlan(plan, el) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-opt').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function registerSchool() {
+  const name       = document.getElementById('reg-school').value.trim();
+  const src        = document.getElementById('reg-src').value.trim();
+  const fname      = document.getElementById('reg-name').value.trim();
+  const email      = document.getElementById('reg-email').value.trim();
+  const phone      = document.getElementById('reg-phone').value.trim();
+  const subaccount = document.getElementById('reg-subaccount').value.trim();
+  const pass       = document.getElementById('reg-pass').value;
+
+  if (!name||!src||!email||!pass) { showToast('Please fill all required fields.', true); return; }
+  if (pass.length < 8) { showToast('Password must be at least 8 characters.', true); return; }
+
+  // Check if email already exists
+  const existing = await db.collection('dp_schools').where('email','==',email).get();
+  if (!existing.empty) { showToast('Email already registered.', true); return; }
+
+  const school = {
+    name, src, email, pass, phone, subaccount,
+    plan: selectedPlan,
+    active: true,
+    logo: name.substring(0,2).toUpperCase(),
+    dues: [],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    const ref = await db.collection('dp_schools').add(school);
+    currentSchool = { id: ref.id, ...school };
+    showPage('dashboard');
+    showToast(`${src} registered! Welcome aboard. 🎉`);
+  } catch(e) {
+    showToast('Error: ' + e.message, true);
+  }
+}
+
+// ═══════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+let toastTimer;
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  document.getElementById('t-msg').textContent = msg;
+  document.getElementById('t-icon').textContent = isError ? '⚠' : '✓';
+  t.classList.toggle('error', isError);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ═══════════════════════════════════════
+// SECRET SUPER ADMIN (Ctrl+Shift+S)
+// ═══════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+    e.preventDefault();
+    showPage('superadmin');
+  }
+});
+</script>
+</body>
+</html>
